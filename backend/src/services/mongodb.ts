@@ -179,7 +179,7 @@ export class MongoDBConnector {
   }
 
   /**
-   * Get recent jobs (last 10) for dashboard
+   * Get recent jobs (last 50) for dashboard
    */
   async getRecentJobs(): Promise<Job[]> {
     try {
@@ -187,7 +187,7 @@ export class MongoDBConnector {
         logger.warn('MongoDB not connected, using demo data for getRecentJobs');
         return [...this.getDemoActiveJobs(), ...this.getDemoCompletedJobs()]
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 10);
+          .slice(0, 50);
       }
 
       if (!this.db) {
@@ -199,7 +199,7 @@ export class MongoDBConnector {
       const jobs = await collection
         .find({})
         .sort({ created_at: -1 })
-        .limit(10)
+        .limit(50)
         .toArray();
       
       return jobs as unknown as Job[];
@@ -575,6 +575,45 @@ export class MongoDBConnector {
     } catch (error) {
       logger.error('Error fetching encoder performance from MongoDB', error);
       throw new DatabaseError('Failed to fetch encoder performance', error as Error);
+    }
+  }
+
+  /**
+   * Get jobs by encoder with pagination
+   */
+  async getJobsByEncoder(encoderId: string, limit: number = 20, offset: number = 0): Promise<{ jobs: Job[], total: number }> {
+    try {
+      const collection = this.getJobsCollection();
+      if (!collection) {
+        logger.warn('MongoDB not connected, cannot fetch jobs by encoder');
+        return { jobs: [], total: 0 };
+      }
+
+      const query = {
+        assigned_to: encoderId,
+        status: { $in: ['completed', 'complete', 'running', 'assigned'] }
+      };
+
+      const [jobs, total] = await Promise.all([
+        collection
+          .find(query)
+          .sort({ completed_at: -1, created_at: -1 })
+          .skip(offset)
+          .limit(limit)
+          .toArray(),
+        collection.countDocuments(query)
+      ]);
+
+      return {
+        jobs: jobs.map((job: any) => ({
+          ...job,
+          id: job._id?.toString() || job.id
+        })),
+        total
+      };
+    } catch (error) {
+      logger.error(`Error fetching jobs for encoder ${encoderId}:`, error);
+      return { jobs: [], total: 0 };
     }
   }
 

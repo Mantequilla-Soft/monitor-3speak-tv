@@ -5,7 +5,15 @@ import { Dashboard, Jobs, Encoders, Analytics } from './pages';
 
 function App() {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        backgroundColor: 'background.default',
+        position: 'relative',
+      }}
+    >
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />

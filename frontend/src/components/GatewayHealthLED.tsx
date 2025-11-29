@@ -39,7 +39,19 @@ export function GatewayHealthLED({ status, size = 180 }: GatewayHealthLEDProps) 
   const ledSize = size * 0.4; // LED takes 40% of total size
 
   return (
-    <Paper elevation={3} sx={{ p: 2, width: size + 40, textAlign: 'center', height: '100%' }}>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        p: 2, 
+        width: size + 40, 
+        textAlign: 'center', 
+        height: '100%',
+        backgroundColor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 3
+      }}
+    >
       <Typography variant="h6" gutterBottom>
         Gateway Health
       </Typography>

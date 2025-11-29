@@ -12,16 +12,21 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  IconButton,
+  TablePagination,
 } from '@mui/material';
 import {
   VideoLibrary,
   PlayCircleOutline,
   Computer,
-  TrendingUp
+  TrendingUp,
+  Refresh as RefreshIcon,
+  AccountCircle,
 } from '@mui/icons-material';
 import { WorkloadGauge, WorkloadData } from '../components/WorkloadGauge';
 import { GatewayHealthLED, GatewayHealthStatus } from '../components/GatewayHealthLED';
+import { MetricCard, SystemStatusStrip } from '../components';
 
 interface EncoderInfo {
   nodeName: string;
@@ -71,6 +76,23 @@ export function Dashboard() {
     gatewayHealth: 'healthy'
   });
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (_event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Paginated jobs
+  const paginatedJobs = dashboardData.recentJobs.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   // Fetch dashboard data
   const fetchDashboardData = async () => {
@@ -132,178 +154,321 @@ export function Dashboard() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          Gateway Monitor Dashboard
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <WorkloadGauge data={dashboardData.workload} size={180} />
-          <GatewayHealthLED status={dashboardData.gatewayHealth} size={180} />
+    <Box>
+      {/* Modern Header with Gradient Bar */}
+      <Box
+        sx={{
+          mb: 4,
+          p: { xs: 2.5, sm: 3 },
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #2A3BAE 0%, #6B00FF 100%)',
+          boxShadow: '0 8px 32px rgba(42, 59, 174, 0.3)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '-50%',
+            right: '-10%',
+            width: '300px',
+            height: '300px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: '1.75rem', sm: '2rem', md: '2.25rem' },
+                color: '#fff',
+                mb: 0.5,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Gateway Monitor
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'rgba(255, 255, 255, 0.85)',
+                fontSize: '0.95rem',
+                fontWeight: 500,
+              }}
+            >
+              Encoding Infrastructure — Real-time Status
+            </Typography>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Refresh Button */}
+            <IconButton
+              onClick={fetchDashboardData}
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                },
+              }}
+            >
+              <RefreshIcon />
+            </IconButton>
+
+            {/* Profile Icon */}
+            <IconButton
+              sx={{
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: '#fff',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.25)',
+                },
+              }}
+            >
+              <AccountCircle />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* Gauges Row */}
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <WorkloadGauge data={dashboardData.workload} size={160} />
+          <GatewayHealthLED status={dashboardData.gatewayHealth} size={160} />
         </Box>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Metrics Cards */}
+        {/* Modern Metrics Cards with Sparklines */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <Typography color="text.secondary" gutterBottom variant="body2">
-                  Available Jobs
-                </Typography>
-                <Typography variant="h4">
-                  {dashboardData.availableJobs}
-                </Typography>
-              </div>
-              <VideoLibrary color="primary" sx={{ fontSize: 40 }} />
-            </CardContent>
-          </Card>
+          <MetricCard
+            title="Available Jobs"
+            value={dashboardData.availableJobs}
+            icon={<VideoLibrary />}
+            color="primary"
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <Typography color="text.secondary" gutterBottom variant="body2">
-                  Jobs in Progress
-                </Typography>
-                <Typography variant="h4">
-                  {dashboardData.jobsInProgress}
-                </Typography>
-              </div>
-              <PlayCircleOutline color="error" sx={{ fontSize: 40 }} />
-            </CardContent>
-          </Card>
+          <MetricCard
+            title="Jobs in Progress"
+            value={dashboardData.jobsInProgress}
+            icon={<PlayCircleOutline />}
+            color="error"
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <Typography color="text.secondary" gutterBottom variant="body2">
-                  Active Encoders
-                </Typography>
-                <Typography variant="h4">
-                  {dashboardData.activeEncoders}
-                </Typography>
-              </div>
-              <Computer color="success" sx={{ fontSize: 40 }} />
-            </CardContent>
-          </Card>
+          <MetricCard
+            title="Active Encoders"
+            value={dashboardData.activeEncoders}
+            icon={<Computer />}
+            color="success"
+          />
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <Typography color="text.secondary" gutterBottom variant="body2">
-                  Jobs Today
-                </Typography>
-                <Typography variant="h4">
-                  {dashboardData.jobsCompletedToday}
-                </Typography>
-              </div>
-              <TrendingUp color="info" sx={{ fontSize: 40 }} />
-            </CardContent>
-          </Card>
+          <MetricCard
+            title="Jobs Today"
+            value={dashboardData.jobsCompletedToday}
+            icon={<TrendingUp />}
+            color="info"
+          />
         </Grid>
 
         {/* Recent Jobs Table - Full Width */}
         <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
+          <Card
+            sx={{
+              animation: 'fadeInUp 0.6s ease-out 0.2s backwards',
+              '@keyframes fadeInUp': {
+                from: {
+                  opacity: 0,
+                  transform: 'translateY(20px)',
+                },
+                to: {
+                  opacity: 1,
+                  transform: 'translateY(0)',
+                },
+              },
+            }}
+          >
+            <CardContent sx={{ p: { xs: 2.5, sm: 3 } }}>
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '1.1rem',
+                  mb: 3,
+                }}
+              >
                 Recent Jobs
               </Typography>
-              <TableContainer>
-                <Table size="small">
+              <TableContainer sx={{ overflowX: 'auto' }}>
+                <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Job ID</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Job ID</TableCell>
                       <TableCell>Status</TableCell>
                       <TableCell>Video</TableCell>
-                      <TableCell>Size</TableCell>
-                      <TableCell>Encoder</TableCell>
-                      <TableCell>Created</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Size</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>Encoder</TableCell>
+                      <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Created</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {dashboardData.recentJobs.map((job) => (
-                      <TableRow key={job.id}>
-                        <TableCell>
-                          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                    {paginatedJobs.map((job) => (
+                      <TableRow
+                        key={job.id}
+                        sx={{
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                          <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'text.secondary' }}>
                             {job.fullId}
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Chip 
-                            label={job.status} 
+                          <Chip
+                            label={job.status}
                             size="small"
                             color={
                               job.status === 'complete' ? 'success' :
                               job.status === 'running' ? 'primary' :
                               job.status === 'unassigned' ? 'warning' : 'default'
                             }
+                            sx={{ fontWeight: 600 }}
                           />
                         </TableCell>
                         <TableCell>
-                          <Typography variant="body2">
-                            {job.videoOwner}/{job.videoPermlink}
+                          <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' }, fontWeight: 500 }}>
+                            <a
+                              href={`https://3speak.tv/watch?v=${job.videoOwner}/${job.videoPermlink}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: '#4C55F2', textDecoration: 'none' }}
+                            >
+                              {job.videoOwner}/{job.videoPermlink}
+                            </a>
                           </Typography>
                         </TableCell>
-                        <TableCell>{job.videoSizeFormatted}</TableCell>
-                        <TableCell>
-                          {job.encoderInfo ? (
-                            <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                {job.encoderInfo.nodeName}
-                              </Typography>
-                              {job.encoderInfo.hiveAccount && (
-                                <Typography variant="caption" color="text.secondary">
+                        <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
+                          <Typography variant="body2" sx={{ fontSize: '0.875rem' }}>
+                            {job.videoSizeFormatted}
+                          </Typography>
+                        </TableCell>
+                        <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
+                          {job.encoderInfo && job.encoderInfo.hiveAccount ? (
+                            <a
+                              href={`https://ecency.com/@${job.encoderInfo.hiveAccount}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                              <Box
+                                component="img"
+                                src={`https://images.hive.blog/u/${job.encoderInfo.hiveAccount}/avatar/large`}
+                                alt={job.encoderInfo.hiveAccount}
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '8px',
+                                  border: '1px solid rgba(76, 85, 242, 0.3)',
+                                  objectFit: 'cover',
+                                }}
+                                onError={(e: any) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                              <Box
+                                sx={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: '8px',
+                                  backgroundColor: 'rgba(76, 85, 242, 0.15)',
+                                  border: '1px solid rgba(76, 85, 242, 0.3)',
+                                  display: 'none',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  color: '#4C55F2',
+                                }}
+                              >
+                                {job.encoderInfo.nodeName.substring(0, 2).toUpperCase()}
+                              </Box>
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.875rem', color: 'text.primary' }}>
+                                  {job.encoderInfo.nodeName}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
                                   @{job.encoderInfo.hiveAccount}
                                 </Typography>
-                              )}
-                            </Box>
+                              </Box>
+                            </a>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
                               {job.assignedTo ? 'Unknown Encoder' : 'Unassigned'}
                             </Typography>
                           )}
                         </TableCell>
-                        <TableCell>{job.createdAgo}</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
+                          <Typography variant="body2" sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
+                            {job.createdAgo}
+                          </Typography>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </TableContainer>
+              <TablePagination
+                component="div"
+                count={dashboardData.recentJobs.length}
+                page={page}
+                onPageChange={handleChangePage}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                sx={{
+                  borderTop: '1px solid rgba(76, 85, 242, 0.1)',
+                  '.MuiTablePagination-toolbar': {
+                    color: 'text.secondary',
+                  },
+                  '.MuiTablePagination-selectLabel, .MuiTablePagination-displayedRows': {
+                    fontSize: '0.875rem',
+                  },
+                }}
+              />
             </CardContent>
           </Card>
         </Grid>
 
-        {/* System Status - Moved Below */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                System Status
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">Gateway API</Typography>
-                  <Chip label="Connected" size="small" color="success" />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography variant="body2">MongoDB</Typography>
-                  <Chip label="Connected" size="small" color="success" />
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Typography variant="body2">WebSocket</Typography>
-                  <Chip label="Connected" size="small" color="success" />
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
+        {/* System Status Strip - Horizontal Layout */}
+        <Grid item xs={12}>
+          <Box
+            sx={{
+              animation: 'fadeInUp 0.6s ease-out 0.3s backwards',
+            }}
+          >
+            <SystemStatusStrip
+              systems={[
+                { name: 'Gateway API', status: 'connected' },
+                { name: 'MongoDB', status: 'connected' },
+                { name: 'WebSocket', status: 'connected' },
+              ]}
+            />
+          </Box>
         </Grid>
       </Grid>
     </Box>

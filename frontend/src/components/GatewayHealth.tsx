@@ -1,23 +1,18 @@
 import { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  Chip, 
-  Button,
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Chip,
   CircularProgress,
   Alert,
   Grid,
-  Divider
 } from '@mui/material';
 import { 
   CheckCircle as OnlineIcon,
   Error as OfflineIcon,
-  Refresh as RefreshIcon,
-  Speed as SpeedIcon,
-  Security as AuthIcon,
-  Assignment as JobIcon
+  Speed as SpeedIcon
 } from '@mui/icons-material';
 
 interface GatewayHealthStatus {
@@ -30,18 +25,8 @@ interface GatewayHealthStatus {
   gatewayUrl?: string;
 }
 
-interface ComprehensiveResult {
-  health: GatewayHealthStatus;
-  registration: boolean;
-  jobPolling: boolean;
-  gatewayUrl: string;
-  timestamp: string;
-}
-
 export function GatewayHealth() {
   const [healthStatus, setHealthStatus] = useState<GatewayHealthStatus | null>(null);
-  const [comprehensiveResult, setComprehensiveResult] = useState<ComprehensiveResult | null>(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
@@ -64,29 +49,6 @@ export function GatewayHealth() {
     }
   };
 
-  // Perform comprehensive test
-  const performComprehensiveTest = async () => {
-    setLoading(true);
-    try {
-      setError(null);
-      const response = await fetch('/api/statistics/gateway-comprehensive');
-      const result = await response.json();
-      
-      if (result.success) {
-        setComprehensiveResult(result.data);
-        setHealthStatus(result.data.health);
-        setLastUpdate(new Date());
-      } else {
-        setError(result.error || 'Failed to perform comprehensive test');
-      }
-    } catch (err) {
-      setError('Network error performing comprehensive test');
-      console.error('Comprehensive test error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Auto-refresh health status
   useEffect(() => {
     fetchHealthStatus();
@@ -99,27 +61,10 @@ export function GatewayHealth() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5" component="h2" sx={{ flexGrow: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
           Gateway Health Monitor
         </Typography>
-        <Button
-          variant="outlined"
-          startIcon={<RefreshIcon />}
-          onClick={fetchHealthStatus}
-          sx={{ mr: 2 }}
-        >
-          Refresh
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={loading ? <CircularProgress size={20} /> : <AuthIcon />}
-          onClick={performComprehensiveTest}
-          disabled={loading}
-        >
-          {loading ? 'Testing...' : 'Full Test'}
-        </Button>
       </Box>
 
       {error && (
@@ -130,15 +75,15 @@ export function GatewayHealth() {
 
       <Grid container spacing={3}>
         {/* Basic Health Status */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
+              <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', mb: 3 }}>
                 Gateway Status
               </Typography>
               
               {healthStatus ? (
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     {getStatusIcon(healthStatus.isOnline)}
                     <Chip
@@ -189,118 +134,25 @@ export function GatewayHealth() {
           </Card>
         </Grid>
 
-        {/* Comprehensive Test Results */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Gateway Features Test
-              </Typography>
-
-              {comprehensiveResult ? (
-                <Box>
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <AuthIcon sx={{ mr: 1, fontSize: 'small' }} />
-                      <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                        DID Authentication:
-                      </Typography>
-                      <Chip
-                        label={comprehensiveResult.registration ? 'Success' : 'Failed'}
-                        color={comprehensiveResult.registration ? 'success' : 'error'}
-                        size="small"
-                      />
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <JobIcon sx={{ mr: 1, fontSize: 'small' }} />
-                      <Typography variant="body2" sx={{ flexGrow: 1 }}>
-                        Job Polling:
-                      </Typography>
-                      <Chip
-                        label={comprehensiveResult.jobPolling ? 'Available' : 'Unavailable'}
-                        color={comprehensiveResult.jobPolling ? 'success' : 'warning'}
-                        size="small"
-                      />
-                    </Box>
-                  </Box>
-
-                  <Divider sx={{ my: 2 }} />
-
-                  <Typography variant="body2" color="textSecondary">
-                    Last Test: {new Date(comprehensiveResult.timestamp).toLocaleString()}
-                  </Typography>
-
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Test Summary:
-                    </Typography>
-                    <Typography variant="body2" color="textSecondary">
-                      • Health Check: {comprehensiveResult.health.isOnline ? '✅' : '❌'}<br />
-                      • DID Registration: {comprehensiveResult.registration ? '✅' : '❌'}<br />
-                      • Job API Access: {comprehensiveResult.jobPolling ? '✅' : '⚠️'}
-                    </Typography>
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ textAlign: 'center', p: 3 }}>
-                  <Typography variant="body2" color="textSecondary">
-                    No comprehensive test performed yet.
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                    Click "Full Test" to check DID authentication and gateway features.
-                  </Typography>
-                </Box>
-              )}
+        {/* Monitoring Information - 2 Cards */}
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom sx={{ mb: 2, textAlign: 'center', fontWeight: 700 }}>
+            Monitoring Information
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Card sx={{ background: 'rgba(76,85,242,0.06)', borderRadius: 0 }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" color="textSecondary">Auto Refresh</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Every 30s</Typography>
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Real-time Status */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Monitoring Information
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Auto Refresh
-                  </Typography>
-                  <Typography variant="body2">
-                    Every 30 seconds
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Last Update
-                  </Typography>
-                  <Typography variant="body2">
-                    {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    WebSocket
-                  </Typography>
-                  <Typography variant="body2">
-                    Real-time updates
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} sm={6} md={3}>
-                  <Typography variant="subtitle2" color="textSecondary">
-                    Monitor Type
-                  </Typography>
-                  <Typography variant="body2">
-                    DID-based Health Check
-                  </Typography>
-                </Grid>
-              </Grid>
+        <Grid item xs={12} sm={6}>
+          <Card sx={{ background: 'rgba(255,180,68,0.06)', borderRadius: 0 }}>
+            <CardContent sx={{ textAlign: 'center' }}>
+              <Typography variant="caption" color="textSecondary">WebSocket</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Real-time</Typography>
             </CardContent>
           </Card>
         </Grid>

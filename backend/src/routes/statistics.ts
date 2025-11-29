@@ -538,6 +538,54 @@ router.get('/dashboard', async (req, res) => {
 });
 
 /**
+ * GET /api/statistics/encoder-jobs/:encoderId
+ * Get list of jobs processed by a specific encoder
+ */
+router.get('/encoder-jobs/:encoderId', async (req, res) => {
+  try {
+    const { mongodb } = getServices();
+    const { encoderId } = req.params;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const { jobs, total } = await mongodb.getJobsByEncoder(encoderId, limit, offset);
+
+    // Format jobs for display
+    const formattedJobs = jobs.map((job: any) => ({
+      id: job.id || job._id?.toString(),
+      videoOwner: job.metadata?.video_owner || job.owner || 'Unknown',
+      videoPermlink: job.metadata?.video_permlink || job.permlink || 'unknown',
+      status: job.status,
+      createdAt: job.created_at,
+      completedAt: job.completed_at,
+      encodingTime: job.encoding_time || 0,
+      videoSize: job.input?.size || job.input_size || 0,
+      quality: job.current_quality || 'unknown',
+    }));
+
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        jobs: formattedJobs,
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
+      }
+    };
+
+    res.json(response);
+  } catch (error) {
+    logger.error('Error fetching encoder jobs', error);
+    const response: ApiResponse = {
+      success: false,
+      error: 'Failed to fetch encoder jobs'
+    };
+    res.status(500).json(response);
+  }
+});
+
+/**
  * POST /api/statistics/test-discord
  * Test Discord webhook connectivity
  */

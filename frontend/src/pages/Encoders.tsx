@@ -238,16 +238,24 @@ export function Encoders() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'stretch', sm: 'center' }, 
+        mb: 3,
+        gap: 2
+      }}>
+        <Typography variant="h4" sx={{ mb: { xs: 1, sm: 0 } }}>
           Encoder Management
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
             startIcon={<RefreshIcon />}
             onClick={fetchEncoders}
             disabled={loading}
+            sx={{ flexGrow: { xs: 1, sm: 0 } }}
           >
             Refresh
           </Button>
@@ -255,6 +263,7 @@ export function Encoders() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            sx={{ flexGrow: { xs: 1, sm: 0 } }}
           >
             Add Encoder
           </Button>
@@ -328,15 +337,15 @@ export function Encoders() {
         </Paper>
       ) : (
         <TableContainer component={Paper}>
-          <Table>
+          <Table size="small">
             <TableHead>
               <TableRow>
                 <TableCell>Node Name</TableCell>
-                <TableCell>Hive Account</TableCell>
-                <TableCell>DID Key</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Hive Account</TableCell>
+                <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>DID Key</TableCell>
                 <TableCell>Last Active</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Hardware</TableCell>
+                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Location</TableCell>
+                <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Hardware</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -346,12 +355,12 @@ export function Encoders() {
                 return (
                 <TableRow key={encoder.encoder_id}>
                   <TableCell>
-                    <Typography variant="body2" fontWeight="medium">
+                    <Typography variant="body2" fontWeight="medium" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                       {encoder.name}
                     </Typography>
                   </TableCell>
-                  <TableCell>{encoder.owner}</TableCell>
-                  <TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{encoder.owner}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                     <Tooltip title={encoder.encoder_id}>
                       <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
                         {encoder.encoder_id.substring(0, 20)}...
@@ -366,26 +375,28 @@ export function Encoders() {
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell>{encoder.location || '-'}</TableCell>
-                  <TableCell>{encoder.hardware_type || '-'}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{encoder.location || '-'}</TableCell>
+                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>{encoder.hardware_type || '-'}</TableCell>
                   <TableCell align="right">
-                    <IconButton
-                      size="small"
-                      onClick={() => handleOpenDialog(encoder)}
-                      color="primary"
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => {
-                        setDeletingEncoder(encoder);
-                        setOpenDeleteDialog(true);
-                      }}
-                      color="error"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                    <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
+                      <IconButton
+                        size="small"
+                        onClick={() => handleOpenDialog(encoder)}
+                        color="primary"
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setDeletingEncoder(encoder);
+                          setOpenDeleteDialog(true);
+                        }}
+                        color="error"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>
                 );

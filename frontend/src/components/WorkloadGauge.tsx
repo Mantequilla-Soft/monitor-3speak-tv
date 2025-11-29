@@ -93,7 +93,18 @@ export function WorkloadGauge({ data, size = 150 }: WorkloadGaugeProps) {
   const needleY = centerY - needleLength * Math.sin(needleRad);
 
   return (
-    <Paper elevation={3} sx={{ p: 2, width: size + 40, textAlign: 'center' }}>
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        p: 2, 
+        width: size + 40, 
+        textAlign: 'center',
+        backgroundColor: 'background.paper',
+        border: '1px solid',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderRadius: 3
+      }}
+    >
       <Typography variant="h6" gutterBottom>
         Workload Monitor
       </Typography>
@@ -104,7 +115,7 @@ export function WorkloadGauge({ data, size = 150 }: WorkloadGaugeProps) {
           <path
             d={`M 10 ${centerY} A ${radius - 10} ${radius - 10} 0 0 1 ${size - 10} ${centerY}`}
             fill="none"
-            stroke="#e0e0e0"
+            stroke="rgba(255, 255, 255, 0.1)"
             strokeWidth="15"
           />
           
@@ -114,7 +125,7 @@ export function WorkloadGauge({ data, size = 150 }: WorkloadGaugeProps) {
           {createArc(120, 180, '#f44336')} {/* Red */}
           
           {/* Zone markers */}
-          <line x1={centerX} y1="15" x2={centerX} y2="35" stroke="#666" strokeWidth="2" />
+          <line x1={centerX} y1="15" x2={centerX} y2="35" stroke="rgba(255, 255, 255, 0.3)" strokeWidth="2" />
           
           {/* Needle */}
           <line
@@ -122,7 +133,7 @@ export function WorkloadGauge({ data, size = 150 }: WorkloadGaugeProps) {
             y1={centerY}
             x2={needleX}
             y2={needleY}
-            stroke="#333"
+            stroke="#ffffff"
             strokeWidth="3"
             strokeLinecap="round"
           />
@@ -132,7 +143,7 @@ export function WorkloadGauge({ data, size = 150 }: WorkloadGaugeProps) {
             cx={centerX}
             cy={centerY}
             r="5"
-            fill="#333"
+            fill="#ffffff"
           />
           
           {/* Zone labels */}
